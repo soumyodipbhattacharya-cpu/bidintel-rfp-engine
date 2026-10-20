@@ -1,0 +1,6 @@
+{
+  "name": "BidIntel - AI Tender & RFP Intelligence Engine",
+  "description": "Enterprise AI intelligence engine for tender packages, multi-document cross-referencing, Excel cost-sheet formula auditing, compliance tracking, and risk analysis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
