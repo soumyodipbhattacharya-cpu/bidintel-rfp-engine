@@ -6,6 +6,7 @@ import {VitePWA} from 'vite-plugin-pwa';
 
 export default defineConfig(() => {
   return {
+    base: '/bidintel-rfp-engine/',
     plugins: [
       react(),
       tailwindcss(),
@@ -13,18 +14,18 @@ export default defineConfig(() => {
         registerType: 'autoUpdate',
         includeAssets: ['icon.svg'],
         manifest: {
-          id: '/',
+          id: '/bidintel-rfp-engine/',
           name: 'BidIntel - AI Tender & RFP Engine',
           short_name: 'BidIntel',
           description: 'Enterprise AI intelligence engine for tender packages, multi-document cross-referencing, and Excel cost-sheet auditing.',
           theme_color: '#0f172a',
           background_color: '#020617',
           display: 'standalone',
-          start_url: '/',
-          scope: '/',
+          start_url: '/bidintel-rfp-engine/',
+          scope: '/bidintel-rfp-engine/',
           icons: [
             {
-              src: '/icon.svg',
+              src: '/bidintel-rfp-engine/icon.svg',
               sizes: '192x192 512x512',
               type: 'image/svg+xml',
               purpose: 'any',
@@ -43,10 +44,7 @@ export default defineConfig(() => {
       },
     },
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modify—file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
-      // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },
   };
