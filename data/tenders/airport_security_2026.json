@@ -1,0 +1,109 @@
+{
+  "workspace": {
+    "id": "ws-airport-fm-2026",
+    "name": "Heathrow Logistics & Airside Guarding Tender",
+    "client": "Heathrow Airport Infrastructure Services",
+    "geography": "London Heathrow (LHR), UK",
+    "bidDeadline": "2026-12-10T15:00:00Z",
+    "internalOwner": "Marcus Vance (Commercial Bid Manager)",
+    "estimatedValue": 3200000,
+    "currency": "GBP (£)",
+    "industry": "Aviation Security & Airside Operations",
+    "status": "Active Review",
+    "createdAt": "2026-10-15T08:00:00Z",
+    "updatedAt": "2026-10-19T14:30:00Z",
+    "documentCount": 2,
+    "notes": "Airside security with strict Department for Transport (DfT) counter-terrorism pass requirements and high-frequency perimeter patrols."
+  },
+  "folders": [
+    "Commercial Models",
+    "Airside Regulations",
+    "Service Agreements",
+    "Compliance Documents"
+  ],
+  "documents": [
+    {
+      "id": "doc-lhr-1",
+      "workspaceId": "ws-airport-fm-2026",
+      "fileName": "LHR_Airside_ITT_Security_2026.pdf",
+      "fileType": "pdf",
+      "fileSize": 1850000,
+      "status": "processed",
+      "detectedCategory": "RFP / Invitation",
+      "userCategory": "RFP / Invitation",
+      "pageCount": 38,
+      "uploadTimestamp": "2026-10-15T09:00:00Z",
+      "extractedSnippet": "Invitation to tender for airside perimeter guarding and vehicle gate compliance at Heathrow Airport Terminals 2 & 5.",
+      "folder": "Airside Regulations"
+    },
+    {
+      "id": "doc-lhr-2",
+      "workspaceId": "ws-airport-fm-2026",
+      "fileName": "LHR_Cost_Model_Schedule_B.xlsx",
+      "fileType": "xlsx",
+      "fileSize": 420000,
+      "status": "processed",
+      "detectedCategory": "Commercial / Cost Sheet",
+      "userCategory": "Commercial / Cost Sheet",
+      "sheetCount": 3,
+      "uploadTimestamp": "2026-10-15T09:10:00Z",
+      "extractedSnippet": "Pricing schedule with airside clearance wage rates, vehicle lease amortizations, and shift premiums.",
+      "folder": "Commercial Models"
+    }
+  ],
+  "requirements": [
+    {
+      "id": "REQ-LHR-01",
+      "workspaceId": "ws-airport-fm-2026",
+      "sourceFileName": "LHR_Airside_ITT_Security_2026.pdf",
+      "documentType": "Scope of Work",
+      "pageNumber": "Page 12",
+      "tableRowCellRef": "Clause 4.1",
+      "requirementCategory": "Compliance and Certifications",
+      "originalText": "All operational personnel must hold valid DfT Airside Security Passes and CTC/SC national security vetting prior to deployment.",
+      "aiInterpretation": "Mandatory Counter-Terrorist Check vetting for 100% of staff. Vetting lead time is ~8 weeks and must be factored into mobilization timeline.",
+      "riskLevel": "Critical",
+      "classification": "Mandatory",
+      "clarificationRequired": true,
+      "suggestedClarificationQuestion": "Will Heathrow Airport sponsor the required DfT security clearances during the mobilization period, or must the Contractor hold existing cleared personnel?",
+      "responsibleOwner": "Vetting Officer",
+      "status": "Accepted",
+      "reviewerComments": "Mobilisation plan includes vetting buffer.",
+      "evidenceCitation": "LHR_Airside_ITT_Security_2026.pdf (Page 12, Clause 4.1)"
+    }
+  ],
+  "costFindings": [],
+  "conflicts": [],
+  "clarifications": [
+    {
+      "id": "CQ-LHR-01",
+      "workspaceId": "ws-airport-fm-2026",
+      "questionText": "Will Heathrow Airport sponsor DfT airside security pass applications during the 60-day mobilization window?",
+      "businessReason": "Essential to prevent penalty deductions for unmanned airside gates on commencement date.",
+      "sourceDocument": "LHR_Airside_ITT_Security_2026.pdf",
+      "exactReference": "Clause 4.1, Page 12",
+      "relevantRequirementOrConflict": "REQ-LHR-01",
+      "category": "Operations",
+      "priority": "High",
+      "isMandatoryBeforeSubmission": true,
+      "suggestedRecipient": "Heathrow Airport Security Directorate",
+      "status": "Ready for Submission"
+    }
+  ],
+  "checklist": [
+    {
+      "id": "chk-lhr-1",
+      "workspaceId": "ws-airport-fm-2026",
+      "title": "DfT Compliance & Airside Operating License",
+      "category": "Required certificates",
+      "description": "Submission of company airside security accreditation certificate.",
+      "status": "Complete",
+      "owner": "Marcus Vance",
+      "dueDate": "2026-11-20",
+      "notes": "Certificate valid until 2028.",
+      "evidenceReference": "LHR_Airside_License_2026.pdf"
+    }
+  ],
+  "lastSavedAt": "2026-10-20T10:15:00Z",
+  "version": "2.0.0"
+}

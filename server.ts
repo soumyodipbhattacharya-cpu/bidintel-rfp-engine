@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import dotenv from 'dotenv';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI, Type } from '@google/genai';
 
@@ -8,6 +9,11 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const TENDERS_DIR = path.resolve(__dirname, 'data', 'tenders');
+if (!fs.existsSync(TENDERS_DIR)) {
+  fs.mkdirSync(TENDERS_DIR, { recursive: true });
+}
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -278,6 +284,120 @@ Specify whether each question is MANDATORY before submission to protect commerci
       error: error.message,
       questions: [],
     });
+  }
+});
+
+// ==========================================
+// RFP Project Management Endpoints (Stored in data/tenders/)
+// ==========================================
+
+// List all RFPs stored in repository
+app.get('/api/rfps', async (req: Request, res: Response) => {
+  try {
+    if (!fs.existsSync(TENDERS_DIR)) {
+      return res.json({ success: true, rfps: [] });
+    }
+    const files = fs.readdirSync(TENDERS_DIR).filter((f) => f.endsWith('.json'));
+    const rfps = [];
+    for (const file of files) {
+      try {
+        const filePath = path.join(TENDERS_DIR, file);
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const parsed = JSON.parse(content);
+        rfps.push(parsed);
+      } catch (e) {
+        console.error(`Error reading ${file}:`, e);
+      }
+    }
+    return res.json({ success: true, rfps });
+  } catch (error: any) {
+    console.error('Error listing RFPs:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Get a specific RFP by ID
+app.get('/api/rfps/:id', (req: Request, res: Response) => {
+  try {
+    const rfpId = req.params.id;
+    // Sanitize filename
+    const safeId = rfpId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filePath = path.join(TENDERS_DIR, `${safeId}.json`);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, message: 'RFP not found' });
+    }
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    return res.json({ success: true, rfp: data });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Save or Update an RFP package into data/tenders/
+app.post('/api/rfps', (req: Request, res: Response) => {
+  try {
+    const pkg = req.body;
+    const rfpId = pkg.workspace?.id || pkg.id || `ws-${Date.now()}`;
+    const safeId = rfpId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filePath = path.join(TENDERS_DIR, `${safeId}.json`);
+
+    const fullPackage = {
+      ...pkg,
+      lastSavedAt: new Date().toISOString(),
+      version: '2.0.0',
+    };
+
+    fs.writeFileSync(filePath, JSON.stringify(fullPackage, null, 2), 'utf-8');
+    return res.json({
+      success: true,
+      message: `RFP saved successfully to Git repository (${filePath})`,
+      rfp: fullPackage,
+    });
+  } catch (error: any) {
+    console.error('Error saving RFP:', error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Update specific RFP
+app.put('/api/rfps/:id', (req: Request, res: Response) => {
+  try {
+    const rfpId = req.params.id;
+    const safeId = rfpId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filePath = path.join(TENDERS_DIR, `${safeId}.json`);
+
+    const pkg = req.body;
+    const fullPackage = {
+      ...pkg,
+      lastSavedAt: new Date().toISOString(),
+      version: '2.0.0',
+    };
+
+    fs.writeFileSync(filePath, JSON.stringify(fullPackage, null, 2), 'utf-8');
+    return res.json({
+      success: true,
+      message: `RFP updated in Git repo`,
+      rfp: fullPackage,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Delete an RFP
+app.delete('/api/rfps/:id', (req: Request, res: Response) => {
+  try {
+    const rfpId = req.params.id;
+    const safeId = rfpId.replace(/[^a-zA-Z0-9_-]/g, '_');
+    const filePath = path.join(TENDERS_DIR, `${safeId}.json`);
+
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      return res.json({ success: true, message: `RFP deleted from Git repo` });
+    }
+    return res.status(404).json({ success: false, message: 'File not found' });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, error: error.message });
   }
 });
 

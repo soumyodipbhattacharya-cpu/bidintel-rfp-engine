@@ -6,7 +6,10 @@ import {
   FileSpreadsheet,
   FileText,
   FileUp,
+  Folder,
   FolderOpen,
+  FolderPlus,
+  HardDrive,
   Info,
   Layers,
   Plus,
@@ -20,10 +23,14 @@ import { DocumentCategory, TenderDocument, TenderWorkspace } from '../types';
 interface DocumentLibraryViewProps {
   documents: TenderDocument[];
   workspace: TenderWorkspace;
+  folders?: string[];
+  onUpdateFolders?: (folders: string[]) => void;
   onUpdateDocuments: (docs: TenderDocument[]) => void;
   onRunAnalysis: () => void;
   isAnalyzing: boolean;
   onAddCostFinding?: (findings: any[]) => void;
+  onSaveRfp?: () => void;
+  isSaving?: boolean;
 }
 
 const DOCUMENT_CATEGORIES: DocumentCategory[] = [
@@ -41,14 +48,22 @@ const DOCUMENT_CATEGORIES: DocumentCategory[] = [
 export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
   documents,
   workspace,
+  folders = ['Commercial & Cost Sheets', 'Technical Scope & SoW', 'Contracts & MSA', 'Compliance & Certifications'],
+  onUpdateFolders,
   onUpdateDocuments,
   onRunAnalysis,
   isAnalyzing,
   onAddCostFinding,
+  onSaveRfp,
+  isSaving,
 }) => {
   const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
   const [legacyDocNotice, setLegacyDocNotice] = useState<string | null>(null);
   const [selectedDocForInspection, setSelectedDocForInspection] = useState<TenderDocument | null>(null);
+  const [selectedFolderFilter, setSelectedFolderFilter] = useState<string>('ALL');
+  const [targetUploadFolder, setTargetUploadFolder] = useState<string>(folders[0] || 'General Documents');
+  const [showNewFolderModal, setShowNewFolderModal] = useState(false);
+  const [newFolderNameInput, setNewFolderNameInput] = useState('');
 
   // Automatic category detection heuristic
   const detectCategoryFromName = (fileName: string): DocumentCategory => {
@@ -85,6 +100,22 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
       return 'Annexure / Appendix';
     }
     return 'Other / Unclassified';
+  };
+
+  const handleAddFolder = () => {
+    const trimmed = newFolderNameInput.trim();
+    if (trimmed && !folders.includes(trimmed)) {
+      const updated = [...folders, trimmed];
+      if (onUpdateFolders) onUpdateFolders(updated);
+      setTargetUploadFolder(trimmed);
+      setNewFolderNameInput('');
+      setShowNewFolderModal(false);
+    }
+  };
+
+  const handleDocumentFolderChange = (docId: string, newFolder: string) => {
+    const updated = documents.map((d) => (d.id === docId ? { ...d, folder: newFolder } : d));
+    onUpdateDocuments(updated);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,6 +191,7 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
         userCategory: detected,
         uploadTimestamp: new Date().toISOString(),
         extractedSnippet: `Uploaded document ${fileName} (${(file.size / 1024).toFixed(1)} KB). Ready for connected tender audit.`,
+        folder: targetUploadFolder || 'General Documents',
         sheets: sheets.length > 0 ? sheets : undefined,
         warnings,
       });
@@ -178,6 +210,11 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
     // Reset input
     event.target.value = '';
   };
+
+  const displayedDocuments = documents.filter((d) => {
+    if (selectedFolderFilter === 'ALL') return true;
+    return (d.folder || 'General Documents') === selectedFolderFilter;
+  });
 
   const handleCategoryChange = (docId: string, newCategory: DocumentCategory) => {
     const updated = documents.map((doc) => (doc.id === docId ? { ...doc, userCategory: newCategory } : doc));
@@ -209,7 +246,18 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {onSaveRfp && (
+              <button
+                onClick={onSaveRfp}
+                disabled={isSaving}
+                className="px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer bg-emerald-950 text-emerald-300 border border-emerald-800 hover:bg-emerald-900"
+              >
+                <HardDrive className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isSaving ? 'Saving...' : 'Save RFP to Git'}</span>
+              </button>
+            )}
+
             <button
               onClick={onRunAnalysis}
               disabled={isAnalyzing || documents.length === 0}
@@ -222,6 +270,64 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
               <RefreshCw className={`w-3.5 h-3.5 ${isAnalyzing ? 'animate-spin' : ''}`} />
               <span>{isAnalyzing ? 'Analyzing Package...' : 'Re-run Package Analysis'}</span>
             </button>
+          </div>
+        </div>
+
+        {/* Folder Destination & Quick Setup */}
+        <div className="mb-4 p-3 rounded-lg bg-slate-950/70 border border-slate-800 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="text-slate-400 font-semibold">Upload Target Folder:</span>
+            <select
+              value={targetUploadFolder}
+              onChange={(e) => setTargetUploadFolder(e.target.value)}
+              className="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-slate-200 text-xs font-medium focus:outline-none focus:border-indigo-500"
+            >
+              {folders.map((f) => (
+                <option key={f} value={f}>
+                  📁 {f}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => setShowNewFolderModal(true)}
+              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium border border-slate-700 flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3 h-3 text-indigo-400" />
+              <span>New Folder</span>
+            </button>
+          </div>
+
+          {/* Folder Filter Chips */}
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-slate-500 text-[11px]">Filter by:</span>
+            <button
+              onClick={() => setSelectedFolderFilter('ALL')}
+              className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer transition-colors ${
+                selectedFolderFilter === 'ALL'
+                  ? 'bg-indigo-600 text-white font-semibold'
+                  : 'bg-slate-900 text-slate-400 hover:text-white'
+              }`}
+            >
+              All Files ({documents.length})
+            </button>
+            {folders.map((folder) => {
+              const count = documents.filter((d) => (d.folder || 'General Documents') === folder).length;
+              const isSelected = selectedFolderFilter === folder;
+              return (
+                <button
+                  key={folder}
+                  onClick={() => setSelectedFolderFilter(folder)}
+                  className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer transition-colors flex items-center gap-1 ${
+                    isSelected
+                      ? 'bg-indigo-600 text-white font-semibold'
+                      : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+                  }`}
+                >
+                  <span>📁 {folder}</span>
+                  <span className="opacity-70 font-mono">({count})</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -243,7 +349,7 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
                 Click to browse or drop RFP files here
               </p>
               <p className="text-xs text-slate-500 mt-1">
-                Supports PDF, DOCX, Excel (.xlsx, .xlsm), CSV. Multiple files or combined document.
+                Files will be saved into <span className="text-indigo-400 font-semibold font-mono">"{targetUploadFolder}"</span>
               </p>
             </div>
             <span className="text-[11px] font-medium px-3 py-1 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
@@ -273,16 +379,18 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
         <div className="p-4 border-b border-slate-800 flex items-center justify-between">
           <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
             <Layers className="w-4 h-4 text-indigo-400" />
-            Connected Tender Package Files ({documents.length})
+            Connected Tender Package Files ({displayedDocuments.length} of {documents.length})
           </h3>
           <span className="text-xs text-slate-400">
-            Click on category tag to override classification manually
+            Click on category or folder to organize files
           </span>
         </div>
 
-        {documents.length === 0 ? (
+        {displayedDocuments.length === 0 ? (
           <div className="p-12 text-center text-slate-500 text-sm">
-            No documents in this workspace yet. Upload files above or load the synthetic benchmark package.
+            {documents.length === 0
+              ? 'No documents in this workspace yet. Upload files above or load the synthetic benchmark package.'
+              : `No files found in folder "${selectedFolderFilter}".`}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -290,6 +398,7 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
               <thead className="bg-slate-950/60 text-slate-400 font-semibold border-b border-slate-800 uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="py-3 px-4">Document File</th>
+                  <th className="py-3 px-4">Folder</th>
                   <th className="py-3 px-4">Format</th>
                   <th className="py-3 px-4">Size</th>
                   <th className="py-3 px-4">Detected Category</th>
@@ -299,7 +408,7 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800 text-slate-300">
-                {documents.map((doc) => (
+                {displayedDocuments.map((doc) => (
                   <tr key={doc.id} className="hover:bg-slate-850/50 transition-colors">
                     {/* File Name */}
                     <td className="py-3 px-4">
@@ -311,6 +420,21 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
                         )}
                         <span className="font-medium text-slate-200">{doc.fileName}</span>
                       </div>
+                    </td>
+
+                    {/* Folder Reassignment Dropdown */}
+                    <td className="py-3 px-4">
+                      <select
+                        value={doc.folder || folders[0] || 'General Documents'}
+                        onChange={(e) => handleDocumentFolderChange(doc.id, e.target.value)}
+                        className="bg-slate-950 border border-slate-700 rounded px-2 py-1 text-[11px] text-slate-300 font-medium focus:outline-none"
+                      >
+                        {folders.map((f) => (
+                          <option key={f} value={f}>
+                            📁 {f}
+                          </option>
+                        ))}
+                      </select>
                     </td>
 
                     {/* Format */}
@@ -447,6 +571,54 @@ export const DocumentLibraryView: React.FC<DocumentLibraryViewProps> = ({
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create New Folder Modal */}
+      {showNewFolderModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                <FolderPlus className="w-4 h-4 text-indigo-400" />
+                Add Document Folder
+              </h3>
+              <button
+                onClick={() => setShowNewFolderModal(false)}
+                className="text-slate-400 hover:text-white text-xs px-2 py-1"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="space-y-2 text-xs">
+              <label className="text-slate-400 font-semibold block">Folder Name</label>
+              <input
+                type="text"
+                autoFocus
+                value={newFolderNameInput}
+                onChange={(e) => setNewFolderNameInput(e.target.value)}
+                placeholder="e.g. 5. Addenda & Clarifications"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddFolder();
+                }}
+              />
+            </div>
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <button
+                onClick={() => setShowNewFolderModal(false)}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddFolder}
+                className="px-3.5 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold"
+              >
+                Create Folder
+              </button>
             </div>
           </div>
         </div>

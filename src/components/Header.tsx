@@ -29,6 +29,7 @@ interface HeaderProps {
   onExportExcel: () => void;
   hasGeminiKey: boolean;
   totalAlerts: number;
+  onOpenRfpMenu?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -39,6 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
   onExportExcel,
   hasGeminiKey,
   totalAlerts,
+  onOpenRfpMenu,
 }) => {
   const navItems = [
     { id: 'dashboard', label: 'Executive Dashboard', icon: Layers },
@@ -82,9 +84,25 @@ export const Header: React.FC<HeaderProps> = ({
 
           {/* Workspace Quick Details & Action Controls */}
           <div className="flex items-center flex-wrap gap-2">
-            <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-300">
-              <span className="text-slate-500">Active Tender:</span>
-              <span className="font-semibold text-slate-200 truncate max-w-[200px]" title={activeWorkspace.name}>
+            {/* RFP Menu Button */}
+            {onOpenRfpMenu && (
+              <button
+                onClick={onOpenRfpMenu}
+                title="Open RFP Projects Menu, create new bids, or manage folders/files"
+                className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-500/20 flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <FolderKanban className="w-3.5 h-3.5 text-indigo-200" />
+                <span>RFP Projects & Menu</span>
+              </button>
+            )}
+
+            <button
+              onClick={onOpenRfpMenu}
+              title="Click to switch or manage RFPs"
+              className="hidden lg:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs text-slate-300 transition-colors cursor-pointer"
+            >
+              <span className="text-slate-500">Active:</span>
+              <span className="font-semibold text-slate-200 truncate max-w-[180px]" title={activeWorkspace.name}>
                 {activeWorkspace.client}
               </span>
               <span className="w-1 h-1 rounded-full bg-slate-600"></span>
@@ -92,7 +110,7 @@ export const Header: React.FC<HeaderProps> = ({
                 <Calendar className="w-3 h-3" />
                 {new Date(activeWorkspace.bidDeadline).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
               </span>
-            </div>
+            </button>
 
             {/* Chromebook Guide Trigger */}
             <button

@@ -1,0 +1,26 @@
+{
+  "workspace": {
+    "id": "ws-mta-secops-2026",
+    "name": "Metropolitan Transit Authority (MTA) Integrated Security & Facility Operations",
+    "client": "Metropolitan Transit Authority (UK Transit Infrastructure)",
+    "geography": "London & Southeast Region, UK",
+    "bidDeadline": "2026-11-15T17:00:00Z",
+    "internalOwner": "Sarah Jenkins (Senior Bid Director)",
+    "estimatedValue": 4850000,
+    "currency": "GBP (£)",
+    "industry": "Corporate Security & Critical Infrastructure",
+    "status": "Active Review",
+    "createdAt": "2026-10-18T09:00:00Z",
+    "updatedAt": "2026-10-20T10:15:00Z",
+    "documentCount": 6,
+    "notes": "High-priority regional tender with rigorous compliance, 24/7 manned security, control room operations, and stringent SLA penalties."
+  },
+  "folders": [
+    "1. Commercial & Pricing",
+    "2. Scope of Work & Specs",
+    "3. Contracts & MSA",
+    "4. Compliance & Annexures"
+  ],
+  "lastSavedAt": "2026-10-20T10:15:00Z",
+  "version": "2.0.0"
+}

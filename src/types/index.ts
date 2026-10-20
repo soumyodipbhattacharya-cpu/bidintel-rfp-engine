@@ -192,7 +192,7 @@ export interface TenderDocument {
   sheetCount?: number;
   uploadTimestamp: string;
   extractedSnippet?: string;
-  rawText?: string;
+  folder?: string; // e.g. "Commercial", "Technical Scope", "Contracts & MSA"
   sheets?: SheetInfo[];
   warnings?: string[];
   isSynthetic?: boolean;
@@ -214,3 +214,17 @@ export interface TenderWorkspace {
   documentCount: number;
   notes?: string;
 }
+
+export interface RFPWorkspacePackage {
+  workspace: TenderWorkspace;
+  folders: string[];
+  documents: TenderDocument[];
+  requirements: ExtractedRequirement[];
+  costFindings: CostSheetFinding[];
+  conflicts: CrossDocConflict[];
+  clarifications: ClarificationQuestion[];
+  checklist: SubmissionChecklistItem[];
+  lastSavedAt: string;
+  version: string;
+}
+
